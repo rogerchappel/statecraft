@@ -1,0 +1,14 @@
+{
+  "project": "statecraft",
+  "mode": "local-first-read-only",
+  "requiredReviewLink": true,
+  "slices": [
+    { "id": "product-contract", "owner": "tech-lead", "status": "done" },
+    { "id": "scan-core", "owner": "builder", "status": "done" },
+    { "id": "report-core", "owner": "builder", "status": "done" },
+    { "id": "cli", "owner": "builder", "status": "done" },
+    { "id": "fixtures-tests", "owner": "builder", "status": "done" },
+    { "id": "oss-readiness", "owner": "maintainer", "status": "done" }
+  ],
+  "gates": ["npm test", "npm run check", "npm run smoke", "bash scripts/validate.sh"]
+}
