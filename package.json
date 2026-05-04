@@ -1,0 +1,39 @@
+{
+  "name": "statecraft",
+  "version": "0.1.0",
+  "description": "Local-first Redux-style state management recipe auditor.",
+  "type": "module",
+  "bin": {
+    "statecraft": "./dist/src/cli.js"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "examples",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "smoke": "npm run build && node dist/src/cli.js scan examples/fixtures/redux-clean --format json --min-score 80",
+    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm test && npm run check && npm run smoke && npm run package:smoke"
+  },
+  "keywords": ["redux", "state-management", "audit", "cli", "local-first"],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}
