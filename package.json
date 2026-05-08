@@ -11,13 +11,14 @@
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/src/index.js"
     }
   },
   "files": [
-    "dist",
+    "dist/src",
     "examples",
     "README.md",
+    "LICENSE",
     "docs"
   ],
   "scripts": {
@@ -26,10 +27,16 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test dist/test/*.test.js",
     "smoke": "npm run build && node dist/src/cli.js scan examples/fixtures/redux-clean --format json --min-score 80",
-    "package:smoke": "npm pack --dry-run",
+    "package:smoke": "npm pack --dry-run && node scripts/package-import-smoke.mjs",
     "release:check": "npm test && npm run check && npm run smoke && npm run package:smoke"
   },
-  "keywords": ["redux", "state-management", "audit", "cli", "local-first"],
+  "keywords": [
+    "redux",
+    "state-management",
+    "audit",
+    "cli",
+    "local-first"
+  ],
   "author": "Roger Chappel",
   "license": "MIT",
   "devDependencies": {
