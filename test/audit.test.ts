@@ -18,3 +18,26 @@ test("messy fixture catches impure reducer and coverage gaps", async () => {
   assert.ok(report.findings.some((finding) => finding.id === "missing-slice-test"));
   assert.ok(report.score < 80);
 });
+
+test("non-state source and tests do not produce state recipe findings", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "non-state-source") });
+
+  assert.equal(report.summary.slices, 0);
+  assert.equal(report.summary.findings, 0);
+  assert.equal(report.score, 100);
+});
+
+test("state recipe findings retain the source file and line", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "redux-messy") });
+  const findings = report.findings.filter(
+    (finding) => finding.file === "src/cart.reducer.ts" && finding.id === "impure-reducer-input"
+  );
+
+  assert.deepEqual(
+    findings.map(({ title, line }) => ({ title, line })),
+    [
+      { title: "Impure input detected: Date.now()", line: 7 },
+      { title: "Impure input detected: Math.random()", line: 6 }
+    ]
+  );
+});
