@@ -25,13 +25,14 @@ export function detectSlices(files: SourceFile[]): SliceRecord[] {
 
 export function runRules(files: SourceFile[], slices: SliceRecord[]): Finding[] {
   const findings: Finding[] = [];
+  const stateRecipePaths = new Set(slices.map((slice) => slice.file));
   for (const slice of slices) {
     if (!slice.hasInitialState) findings.push(finding("missing-initial-state", "predictability", "warn", "Slice lacks explicit initialState", slice.file, "Declare an initialState object so defaults are reviewable and serializable."));
     if (!slice.hasReducers) findings.push(finding("missing-reducers", "inventory", "info", "State file has no obvious reducer recipe", slice.file, "Confirm this file belongs in state inventory or move non-state helpers elsewhere."));
     if (!slice.hasTests) findings.push(finding("missing-slice-test", "coverage", "warn", "Slice has no matching test file", slice.file, "Add a focused test beside the slice or in a mirrored test directory."));
   }
 
-  for (const file of files) {
+  for (const file of files.filter((candidate) => stateRecipePaths.has(candidate.relativePath))) {
     for (const impure of impurePatterns) {
       const line = findLine(file.text, impure.pattern);
       if (line) findings.push(finding("impure-reducer-input", "predictability", "error", `Impure input detected: ${impure.label}`, file.relativePath, "Move nondeterministic inputs into thunk payloads, selectors, or injected services.", line));
