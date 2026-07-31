@@ -7,15 +7,22 @@ Think of it as a pantry labeler for state management: it will not cook dinner fo
 ## Install
 
 ```sh
-npm install
-npm run build
+npm install --global @rogerchappel/statecraft
 ```
+
+The npm package is published as `@rogerchappel/statecraft`; the installed CLI command remains `statecraft`.
 
 ## Use
 
 ```sh
-npx statecraft scan examples/fixtures/redux-clean
-npx statecraft scan examples/fixtures/redux-messy --format json --min-score 75
+statecraft scan examples/fixtures/redux-clean
+statecraft scan examples/fixtures/redux-messy --format json --min-score 75
+```
+
+To run without a global install, select the scoped package explicitly:
+
+```sh
+npx --package=@rogerchappel/statecraft statecraft scan examples/fixtures/redux-clean
 ```
 
 ## What it checks
@@ -40,6 +47,8 @@ Statecraft is inspired by hard-won Redux migration checklists, Redux Toolkit gui
 ## Development
 
 ```sh
+npm install
+npm run build
 npm test
 npm run check
 npm run smoke

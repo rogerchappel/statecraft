@@ -1,5 +1,5 @@
 {
-  "name": "statecraft",
+  "name": "@rogerchappel/statecraft",
   "version": "0.1.0",
   "description": "Local-first Redux-style state management recipe auditor.",
   "type": "module",
