@@ -41,3 +41,14 @@ test("state recipe findings retain the source file and line", async () => {
     ]
   );
 });
+
+test("test path filtering does not exclude source names containing test or spec", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "path-filtering") });
+
+  assert.equal(report.summary.slices, 1);
+  assert.deepEqual(report.slices.map(({ file }) => file), ["src/contest.reducer.ts"]);
+  assert.deepEqual(
+    report.findings.map(({ id, file, line }) => ({ id, file, line })),
+    [{ id: "impure-reducer-input", file: "src/contest.reducer.ts", line: 5 }]
+  );
+});
