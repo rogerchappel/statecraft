@@ -11,7 +11,7 @@ const impurePatterns = [
 
 export function detectSlices(files: SourceFile[]): SliceRecord[] {
   return files
-    .filter((file) => !/(__tests__|test|spec)/i.test(file.relativePath))
+    .filter((file) => !isTestSource(file.relativePath))
     .filter((file) => /slice|reducer|store/i.test(file.relativePath) || /createSlice|combineReducers|createReducer/.test(file.text))
     .map((file) => ({
       name: inferSliceName(file),
@@ -21,6 +21,11 @@ export function detectSlices(files: SourceFile[]): SliceRecord[] {
       hasAsyncThunk: /createAsyncThunk|pending|fulfilled|rejected/.test(file.text),
       hasTests: hasMatchingTest(file, files)
     }));
+}
+
+function isTestSource(relativePath: string): boolean {
+  return /(^|[/\\])(__tests__|tests?|specs?)([/\\]|$)/i.test(relativePath)
+    || /\.(test|spec)\.[^/\\]+$/i.test(relativePath);
 }
 
 export function runRules(files: SourceFile[], slices: SliceRecord[]): Finding[] {
