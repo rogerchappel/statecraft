@@ -17,7 +17,10 @@ The npm package is published as `@rogerchappel/statecraft`; the installed CLI co
 ```sh
 statecraft scan examples/fixtures/redux-clean
 statecraft scan examples/fixtures/redux-messy --format json --min-score 75
+statecraft --help
 ```
+
+`--min-score` accepts a number from 0 through 100. A completed audit below that threshold exits with status 2, while invalid CLI arguments exit with status 1.
 
 To run without a global install, select the scoped package explicitly:
 
