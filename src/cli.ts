@@ -9,6 +9,10 @@ interface CliArgs {
 }
 
 function parseArgs(argv: string[]): CliArgs {
+  if (argv[0] === "--help" || argv[0] === "-h") {
+    return { command: "help", root: ".", format: "markdown" };
+  }
+
   const [command = "help", root = ".", ...rest] = argv;
   let format: "json" | "markdown" = "markdown";
   let minScore: number | undefined;
@@ -19,8 +23,11 @@ function parseArgs(argv: string[]): CliArgs {
       if (value !== "json" && value !== "markdown") throw new Error("--format must be json or markdown");
       format = value;
     } else if (arg === "--min-score") {
-      const value = Number(rest[++index]);
-      if (!Number.isFinite(value)) throw new Error("--min-score must be a number");
+      const rawValue = rest[++index];
+      const value = Number(rawValue);
+      if (rawValue === undefined || rawValue.trim() === "" || !Number.isFinite(value) || value < 0 || value > 100) {
+        throw new Error("--min-score must be a number from 0 to 100");
+      }
       minScore = value;
     } else if (arg === "--help" || arg === "-h") {
       return { command: "help", root, format, minScore };
