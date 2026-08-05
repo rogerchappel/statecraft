@@ -9,6 +9,7 @@ test("clean fixture passes the default score gate", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "redux-clean") });
   assert.equal(report.summary.slices, 2);
   assert.equal(report.summary.errors, 0);
+  assert.ok(report.slices.every((slice) => slice.hasTests));
   assert.ok(report.score >= 90);
 });
 
@@ -46,9 +47,23 @@ test("test path filtering does not exclude source names containing test or spec"
   const report = await auditProject({ root: path.join(fixtureRoot, "path-filtering") });
 
   assert.equal(report.summary.slices, 1);
-  assert.deepEqual(report.slices.map(({ file }) => file), ["src/contest.reducer.ts"]);
+  assert.deepEqual(report.slices.map(({ file, hasTests }) => ({ file, hasTests })), [
+    { file: "src/contest.reducer.ts", hasTests: true }
+  ]);
   assert.deepEqual(
     report.findings.map(({ id, file, line }) => ({ id, file, line })),
     [{ id: "impure-reducer-input", file: "src/contest.reducer.ts", line: 5 }]
+  );
+});
+
+test("source names containing test are not mistaken for their own tests", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "test-name-substring") });
+
+  assert.deepEqual(report.slices.map(({ file, hasTests }) => ({ file, hasTests })), [
+    { file: "src/contest.reducer.ts", hasTests: false }
+  ]);
+  assert.deepEqual(
+    report.findings.map(({ id, file }) => ({ id, file })),
+    [{ id: "missing-slice-test", file: "src/contest.reducer.ts" }]
   );
 });
