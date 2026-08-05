@@ -76,7 +76,7 @@ function hasMatchingTest(file: SourceFile, files: SourceFile[]): boolean {
   const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const testNamePattern = new RegExp(`${escaped}.*(test|spec)|(test|spec).*${escaped}`, "i");
   const describePattern = new RegExp(`[\"']${escaped}(\\s+(slice|reducer|store|smoke|lifecycle|async))*[\"']`, "i");
-  return files.some((candidate) => /test|spec/i.test(candidate.relativePath) && (testNamePattern.test(candidate.relativePath) || describePattern.test(candidate.text)));
+  return files.some((candidate) => isTestSource(candidate.relativePath) && (testNamePattern.test(candidate.relativePath) || describePattern.test(candidate.text)));
 }
 
 function findLine(text: string, pattern: RegExp): number | undefined {
