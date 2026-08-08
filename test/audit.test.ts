@@ -67,3 +67,16 @@ test("source names containing test are not mistaken for their own tests", async 
     [{ id: "missing-slice-test", file: "src/contest.reducer.ts" }]
   );
 });
+
+test("rule matching ignores comments and string literals", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "rule-accuracy") });
+
+  assert.deepEqual(report.slices.map(({ file, hasReducers }) => ({ file, hasReducers })), [
+    { file: "src/actual.reducer.ts", hasReducers: true },
+    { file: "src/empty.store.ts", hasReducers: false }
+  ]);
+  assert.deepEqual(
+    report.findings.filter(({ id }) => id === "impure-reducer-input").map(({ title, file, line }) => ({ title, file, line })),
+    [{ title: "Impure input detected: Date.now()", file: "src/actual.reducer.ts", line: 4 }]
+  );
+});

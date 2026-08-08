@@ -12,13 +12,14 @@ const impurePatterns = [
 export function detectSlices(files: SourceFile[]): SliceRecord[] {
   return files
     .filter((file) => !isTestSource(file.relativePath))
-    .filter((file) => /slice|reducer|store/i.test(file.relativePath) || /createSlice|combineReducers|createReducer/.test(file.text))
-    .map((file) => ({
+    .map((file) => ({ file, code: maskCommentsAndStrings(file.text) }))
+    .filter(({ file, code }) => /slice|reducer|store/i.test(file.relativePath) || /\b(createSlice|combineReducers|createReducer)\b/.test(code))
+    .map(({ file, code }) => ({
       name: inferSliceName(file),
       file: file.relativePath,
-      hasInitialState: /initialState\b/.test(file.text),
-      hasReducers: /reducers\s*:|createReducer|function\s+\w*Reducer|=>\s*\{/.test(file.text),
-      hasAsyncThunk: /createAsyncThunk|pending|fulfilled|rejected/.test(file.text),
+      hasInitialState: /\binitialState\b/.test(code),
+      hasReducers: /\breducers\s*:|\bcreateReducer\b|\bfunction\s+\w*Reducer\b/.test(code),
+      hasAsyncThunk: /\b(createAsyncThunk|pending|fulfilled|rejected)\b/.test(code),
       hasTests: hasMatchingTest(file, files)
     }));
 }
@@ -38,18 +39,53 @@ export function runRules(files: SourceFile[], slices: SliceRecord[]): Finding[] 
   }
 
   for (const file of files.filter((candidate) => stateRecipePaths.has(candidate.relativePath))) {
+    const code = maskCommentsAndStrings(file.text);
     for (const impure of impurePatterns) {
-      const line = findLine(file.text, impure.pattern);
+      const line = findLine(code, impure.pattern);
       if (line) findings.push(finding("impure-reducer-input", "predictability", "error", `Impure input detected: ${impure.label}`, file.relativePath, "Move nondeterministic inputs into thunk payloads, selectors, or injected services.", line));
     }
-    if (/createAsyncThunk/.test(file.text)) {
-      if (!/pending/.test(file.text) || !/fulfilled/.test(file.text) || !/rejected/.test(file.text)) findings.push(finding("incomplete-thunk-lifecycle", "async", "warn", "Async thunk lifecycle is incomplete", file.relativePath, "Handle pending, fulfilled, and rejected states so UI loading and errors stay predictable."));
-      if (!/signal|abort|condition/.test(file.text)) findings.push(finding("missing-cancellation-story", "async", "info", "Async flow lacks cancellation story", file.relativePath, "Thread AbortSignal, thunk condition, or documented idempotency through async recipes."));
+    if (/\bcreateAsyncThunk\b/.test(code)) {
+      if (!/\bpending\b/.test(code) || !/\bfulfilled\b/.test(code) || !/\brejected\b/.test(code)) findings.push(finding("incomplete-thunk-lifecycle", "async", "warn", "Async thunk lifecycle is incomplete", file.relativePath, "Handle pending, fulfilled, and rejected states so UI loading and errors stay predictable."));
+      if (!/\b(signal|abort|condition)\b/.test(code)) findings.push(finding("missing-cancellation-story", "async", "info", "Async flow lacks cancellation story", file.relativePath, "Thread AbortSignal, thunk condition, or documented idempotency through async recipes."));
     }
-    if (/as\s+any|:\s*any\b/.test(file.text)) findings.push(finding("loose-state-types", "migration", "warn", "Loose any type found in state recipe", file.relativePath, "Replace any with typed slice state before migration or framework upgrades."));
-    if (/state\.\w+\s*=/.test(file.text) && !/createSlice|createReducer/.test(file.text)) findings.push(finding("mutation-without-immer", "predictability", "error", "Reducer appears to mutate state without Immer wrapper", file.relativePath, "Return copied state from vanilla reducers or move recipe into createSlice/createReducer."));
+    if (/\bas\s+any|:\s*any\b/.test(code)) findings.push(finding("loose-state-types", "migration", "warn", "Loose any type found in state recipe", file.relativePath, "Replace any with typed slice state before migration or framework upgrades."));
+    if (/\bstate\.\w+\s*=/.test(code) && !/\b(createSlice|createReducer)\b/.test(code)) findings.push(finding("mutation-without-immer", "predictability", "error", "Reducer appears to mutate state without Immer wrapper", file.relativePath, "Return copied state from vanilla reducers or move recipe into createSlice/createReducer."));
   }
   return findings;
+}
+
+function maskCommentsAndStrings(text: string): string {
+  let result = "";
+  let state: "code" | "line-comment" | "block-comment" | "single" | "double" | "template" = "code";
+  let escaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    const next = text[index + 1];
+    if (state === "code") {
+      if (character === "/" && next === "/") { state = "line-comment"; result += "  "; index += 1; continue; }
+      if (character === "/" && next === "*") { state = "block-comment"; result += "  "; index += 1; continue; }
+      if (character === "'") state = "single";
+      else if (character === '"') state = "double";
+      else if (character === "`") state = "template";
+      else { result += character; continue; }
+      result += " ";
+      continue;
+    }
+    if (character === "\n" || character === "\r") {
+      result += character;
+      if (state === "line-comment") state = "code";
+      if (state !== "single" && state !== "double") escaped = false;
+      continue;
+    }
+    result += " ";
+    if (state === "block-comment" && character === "*" && next === "/") { result += " "; index += 1; state = "code"; continue; }
+    if (state === "line-comment" || state === "block-comment") continue;
+    if (escaped) { escaped = false; continue; }
+    if (character === "\\") { escaped = true; continue; }
+    if ((state === "single" && character === "'") || (state === "double" && character === '"') || (state === "template" && character === "`")) state = "code";
+  }
+  return result;
 }
 
 export function migrationChecklist(slices: SliceRecord[], findings: Finding[]): string[] {

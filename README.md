@@ -31,7 +31,7 @@ npx --package=@rogerchappel/statecraft statecraft scan examples/fixtures/redux-c
 ## What it checks
 
 - explicit `initialState` and discoverable reducer recipes
-- reducer predictability issues such as clocks, random values, storage, network calls, or mutation outside Immer-style wrappers
+- reducer predictability issues such as clocks, random values, storage, or mutation outside Immer-style wrappers
 - async thunk lifecycle coverage for `pending`, `fulfilled`, and `rejected`
 - cancellation/idempotency hints for async flows
 - nearby or mirrored test coverage signals
