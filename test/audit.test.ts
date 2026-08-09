@@ -80,3 +80,18 @@ test("rule matching ignores comments and string literals", async () => {
     [{ title: "Impure input detected: Date.now()", file: "src/actual.reducer.ts", line: 4 }]
   );
 });
+
+test("rule matching evaluates simple and nested template interpolations", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "template-interpolations") });
+
+  assert.deepEqual(
+    report.findings.map(({ title, line }) => ({ title, line })),
+    [
+      { title: "Impure input detected: Date.now()", line: 4 },
+      { title: "Impure input detected: Math.random()", line: 5 },
+      { title: "Impure input detected: localStorage", line: 6 },
+      { title: "Impure input detected: sessionStorage", line: 7 },
+      { title: "Loose any type found in state recipe", line: undefined }
+    ]
+  );
+});
