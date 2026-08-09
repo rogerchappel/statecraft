@@ -39,6 +39,8 @@ npx --package=@rogerchappel/statecraft statecraft scan examples/fixtures/redux-c
 
 State-specific findings are evaluated only in detected Redux recipe files: files whose path names a slice, reducer, or store, or whose source uses `createSlice`, `createReducer`, or `combineReducers`. Test and spec files are excluded from that inventory. This keeps ordinary clocks, random values, loose fixture types, and test setup mutations from affecting the audit score. Because detection is intentionally heuristic, unusually named vanilla reducer files may need a conventional `.reducer` filename to enter the inventory.
 
+Rule matching ignores comments and literal string text, including the text portions of template literals. Executable `${...}` template interpolations are still evaluated, including nested templates, so nondeterministic calls and loose types cannot be hidden inside formatted values.
+
 ## Safety model
 
 Statecraft is read-only. The MVP scans source text and emits a report; it does not rewrite reducers, install packages in target apps, or phone home. Use reports as review evidence, not as an automatic merge gate until your team calibrates the score thresholds.

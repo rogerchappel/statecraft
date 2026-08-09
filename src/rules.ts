@@ -58,6 +58,7 @@ function maskCommentsAndStrings(text: string): string {
   let result = "";
   let state: "code" | "line-comment" | "block-comment" | "single" | "double" | "template" = "code";
   let escaped = false;
+  const templateExpressions: Array<number | undefined> = [];
 
   for (let index = 0; index < text.length; index += 1) {
     const character = text[index];
@@ -67,7 +68,22 @@ function maskCommentsAndStrings(text: string): string {
       if (character === "/" && next === "*") { state = "block-comment"; result += "  "; index += 1; continue; }
       if (character === "'") state = "single";
       else if (character === '"') state = "double";
-      else if (character === "`") state = "template";
+      else if (character === "`") { state = "template"; templateExpressions.push(undefined); }
+      else if (templateExpressions.length > 0 && character === "{") {
+        templateExpressions[templateExpressions.length - 1] = (templateExpressions.at(-1) ?? 0) + 1;
+        result += character;
+        continue;
+      } else if (templateExpressions.length > 0 && character === "}") {
+        const depth = templateExpressions.at(-1) ?? 0;
+        result += character;
+        if (depth === 0) {
+          templateExpressions[templateExpressions.length - 1] = undefined;
+          state = "template";
+        } else {
+          templateExpressions[templateExpressions.length - 1] = depth - 1;
+        }
+        continue;
+      }
       else { result += character; continue; }
       result += " ";
       continue;
@@ -83,7 +99,19 @@ function maskCommentsAndStrings(text: string): string {
     if (state === "line-comment" || state === "block-comment") continue;
     if (escaped) { escaped = false; continue; }
     if (character === "\\") { escaped = true; continue; }
-    if ((state === "single" && character === "'") || (state === "double" && character === '"') || (state === "template" && character === "`")) state = "code";
+    if (state === "template" && character === "$" && next === "{") {
+      result += "{";
+      index += 1;
+      templateExpressions[templateExpressions.length - 1] = 0;
+      state = "code";
+      continue;
+    }
+    if (state === "template" && character === "`") {
+      templateExpressions.pop();
+      state = templateExpressions.at(-1) === undefined && templateExpressions.length > 0 ? "template" : "code";
+      continue;
+    }
+    if ((state === "single" && character === "'") || (state === "double" && character === '"')) state = "code";
   }
   return result;
 }
