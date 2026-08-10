@@ -6,11 +6,15 @@ Think of it as a pantry labeler for state management: it will not cook dinner fo
 
 ## Install
 
+Statecraft is currently distributed through GitHub Releases, not the npm registry. Install the release tarball directly:
+
 ```sh
-npm install --global @rogerchappel/statecraft
+npm install --global https://github.com/rogerchappel/statecraft/releases/download/v0.1.0/statecraft-0.1.0.tgz
 ```
 
-The npm package is published as `@rogerchappel/statecraft`; the installed CLI command remains `statecraft`.
+The package artifact is named `@rogerchappel/statecraft`; the installed CLI command is `statecraft`. A future npm-registry publication will be announced separately.
+
+To install from a source checkout instead, clone the repository, run `npm ci && npm run build`, then run `npm install --global .` from the repository root.
 
 ## Use
 
@@ -21,12 +25,6 @@ statecraft --help
 ```
 
 `--min-score` accepts a number from 0 through 100. A completed audit below that threshold exits with status 2, while invalid CLI arguments exit with status 1.
-
-To run without a global install, select the scoped package explicitly:
-
-```sh
-npx --package=@rogerchappel/statecraft statecraft scan examples/fixtures/redux-clean
-```
 
 ## What it checks
 
@@ -73,4 +71,4 @@ npm run package:smoke
 npm run release:check
 ```
 
-Use `npm run package:smoke` or `npm pack --dry-run` to confirm the published tarball includes the support docs and runnable package contents.
+Use `npm run package:smoke` or `npm pack --dry-run` to confirm the release tarball includes the support docs and runnable package contents. `npm run docs:smoke` verifies that the documented release URL stays aligned with the package name and version.

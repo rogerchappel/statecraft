@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Publish under the owner-scoped npm identity `@rogerchappel/statecraft` while retaining the `statecraft` executable name.
+- Distribute the `@rogerchappel/statecraft` package artifact through GitHub Releases, with source-checkout installation supported and npm-registry publication reserved for a future release.
 
 ## 0.1.0
 
