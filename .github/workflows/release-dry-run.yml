@@ -4,9 +4,13 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - README.md
+      - CHANGELOG.md
       - releasebox.config.json
       - package.json
       - package-lock.json
+      - scripts/documentation-smoke.mjs
+      - scripts/package-import-smoke.mjs
       - .github/workflows/release*.yml
 
 permissions:

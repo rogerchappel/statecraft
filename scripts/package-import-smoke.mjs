@@ -23,6 +23,10 @@ try {
   }
   const cli = path.join(temp, 'node_modules', '.bin', process.platform === 'win32' ? 'statecraft.cmd' : 'statecraft');
   await access(cli);
+  const { stdout: help } = await exec(cli, ['--help'], { cwd: temp });
+  if (!help.includes('Usage:\n  statecraft scan')) {
+    throw new Error('installed CLI help contract mismatch');
+  }
   await exec('node', ['--input-type=module', '-e', `import('${packageName}').then((m)=>{ if (typeof m.auditProject !== 'function') throw new Error('auditProject export missing'); })`], { cwd: temp });
   const fixture = path.join(temp, 'node_modules', ...packageName.split('/'), 'examples', 'fixtures', 'redux-clean');
   const { stdout: report } = await exec(cli, ['scan', fixture, '--format', 'json', '--min-score', '80'], { cwd: temp });
