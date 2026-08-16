@@ -138,7 +138,8 @@ function inferSliceName(file: SourceFile): string {
 function hasMatchingTest(file: SourceFile, files: SourceFile[]): boolean {
   const base = path.basename(file.relativePath).replace(/\.(t|j)sx?$/i, "").replace(/\.(slice|reducer|store)$/i, "");
   const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const testNamePattern = new RegExp(`${escaped}.*(test|spec)|(test|spec).*${escaped}`, "i");
+  const semanticBase = `(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`;
+  const testNamePattern = new RegExp(semanticBase, "i");
   const describePattern = new RegExp(`[\"']${escaped}(\\s+(slice|reducer|store|smoke|lifecycle|async))*[\"']`, "i");
   return files.some((candidate) => isTestSource(candidate.relativePath) && (testNamePattern.test(candidate.relativePath) || describePattern.test(candidate.text)));
 }

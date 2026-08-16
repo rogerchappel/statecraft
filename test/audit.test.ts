@@ -68,6 +68,21 @@ test("source names containing test are not mistaken for their own tests", async 
   );
 });
 
+test("test matching requires semantic name boundaries", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "test-name-boundaries") });
+
+  assert.deepEqual(report.slices.map(({ file, hasTests }) => ({ file, hasTests })), [
+    { file: "src/account.reducer.ts", hasTests: true },
+    { file: "src/cart.reducer.ts", hasTests: false },
+    { file: "src/orders.reducer.ts", hasTests: true },
+    { file: "src/profile.reducer.ts", hasTests: true }
+  ]);
+  assert.deepEqual(
+    report.findings.filter(({ id }) => id === "missing-slice-test").map(({ file }) => file),
+    ["src/cart.reducer.ts"]
+  );
+});
+
 test("rule matching ignores comments and string literals", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "rule-accuracy") });
 
