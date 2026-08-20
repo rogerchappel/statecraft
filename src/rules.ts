@@ -13,7 +13,7 @@ export function detectSlices(files: SourceFile[]): SliceRecord[] {
   return files
     .filter((file) => !isTestSource(file.relativePath))
     .map((file) => ({ file, code: maskCommentsAndStrings(file.text) }))
-    .filter(({ file, code }) => /slice|reducer|store/i.test(file.relativePath) || /\b(createSlice|combineReducers|createReducer)\b/.test(code))
+    .filter(({ file, code }) => hasStateRecipePath(file.relativePath) || /\b(createSlice|combineReducers|createReducer)\b/.test(code))
     .map(({ file, code }) => ({
       name: inferSliceName(file),
       file: file.relativePath,
@@ -22,6 +22,10 @@ export function detectSlices(files: SourceFile[]): SliceRecord[] {
       hasAsyncThunk: /\b(createAsyncThunk|pending|fulfilled|rejected)\b/.test(code),
       hasTests: hasMatchingTest(file, files)
     }));
+}
+
+function hasStateRecipePath(relativePath: string): boolean {
+  return /(^|[^a-z0-9])(slice|reducer|store)([^a-z0-9]|$)/i.test(relativePath);
 }
 
 function isTestSource(relativePath: string): boolean {

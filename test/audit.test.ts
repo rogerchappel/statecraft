@@ -83,6 +83,21 @@ test("test matching requires semantic name boundaries", async () => {
   );
 });
 
+test("state recipe paths require semantic name boundaries", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "recipe-path-boundaries") });
+
+  assert.deepEqual(report.slices.map(({ file }) => file), [
+    "src/account.slice.ts",
+    "src/root-store.ts",
+    "src/state.ts"
+  ]);
+  assert.ok(!report.findings.some(({ file }) => file !== undefined && [
+    "src/bookstore.ts",
+    "src/reducerish.ts",
+    "src/slicer.ts"
+  ].includes(file)));
+});
+
 test("rule matching ignores comments and string literals", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "rule-accuracy") });
 
