@@ -60,8 +60,9 @@ export function runRules(files: SourceFile[], slices: SliceRecord[]): Finding[] 
 
 function maskCommentsAndStrings(text: string): string {
   let result = "";
-  let state: "code" | "line-comment" | "block-comment" | "single" | "double" | "template" = "code";
+  let state: "code" | "line-comment" | "block-comment" | "single" | "double" | "template" | "regex" = "code";
   let escaped = false;
+  let regexCharacterClass = false;
   const templateExpressions: Array<number | undefined> = [];
 
   for (let index = 0; index < text.length; index += 1) {
@@ -70,7 +71,8 @@ function maskCommentsAndStrings(text: string): string {
     if (state === "code") {
       if (character === "/" && next === "/") { state = "line-comment"; result += "  "; index += 1; continue; }
       if (character === "/" && next === "*") { state = "block-comment"; result += "  "; index += 1; continue; }
-      if (character === "'") state = "single";
+      if (character === "/" && startsRegexLiteral(result)) state = "regex";
+      else if (character === "'") state = "single";
       else if (character === '"') state = "double";
       else if (character === "`") { state = "template"; templateExpressions.push(undefined); }
       else if (templateExpressions.length > 0 && character === "{") {
@@ -103,6 +105,12 @@ function maskCommentsAndStrings(text: string): string {
     if (state === "line-comment" || state === "block-comment") continue;
     if (escaped) { escaped = false; continue; }
     if (character === "\\") { escaped = true; continue; }
+    if (state === "regex") {
+      if (character === "[") regexCharacterClass = true;
+      else if (character === "]") regexCharacterClass = false;
+      else if (character === "/" && !regexCharacterClass) state = "code";
+      continue;
+    }
     if (state === "template" && character === "$" && next === "{") {
       result += "{";
       index += 1;
@@ -118,6 +126,13 @@ function maskCommentsAndStrings(text: string): string {
     if ((state === "single" && character === "'") || (state === "double" && character === '"')) state = "code";
   }
   return result;
+}
+
+function startsRegexLiteral(maskedPrefix: string): boolean {
+  const prefix = maskedPrefix.trimEnd();
+  if (prefix === "") return true;
+  if (/[({[=,:;!?&|+\-*%^~<>]$/.test(prefix)) return true;
+  return /\b(?:case|delete|do|else|in|instanceof|new|of|return|throw|typeof|void|yield)$/.test(prefix);
 }
 
 export function migrationChecklist(slices: SliceRecord[], findings: Finding[]): string[] {
