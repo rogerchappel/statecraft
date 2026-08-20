@@ -35,7 +35,7 @@ statecraft --help
 - nearby or mirrored test coverage signals
 - migration checklist items to attach to state-library upgrade PRs
 
-State-specific findings are evaluated only in detected Redux recipe files: files whose path names a slice, reducer, or store, or whose source uses `createSlice`, `createReducer`, or `combineReducers`. Test and spec files are excluded from that inventory. This keeps ordinary clocks, random values, loose fixture types, and test setup mutations from affecting the audit score. Because detection is intentionally heuristic, unusually named vanilla reducer files may need a conventional `.reducer` filename to enter the inventory.
+State-specific findings are evaluated only in detected Redux recipe files: files whose path names `slice`, `reducer`, or `store` at a filename or directory boundary (such as `cart.slice.ts`, `root-store.ts`, or `store/index.ts`), or whose source uses `createSlice`, `createReducer`, or `combineReducers`. Substrings inside ordinary names such as `bookstore.ts` and `slicer.ts` do not count. Test and spec files are excluded from that inventory. This keeps ordinary clocks, random values, loose fixture types, and test setup mutations from affecting the audit score. Because detection is intentionally heuristic, unusually named vanilla reducer files may need a conventional `.reducer` filename to enter the inventory.
 
 Rule matching ignores comments and literal string text, including the text portions of template literals. Executable `${...}` template interpolations are still evaluated, including nested templates, so nondeterministic calls and loose types cannot be hidden inside formatted values.
 
