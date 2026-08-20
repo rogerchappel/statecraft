@@ -6,6 +6,7 @@ import path from "node:path";
 const cli = path.join(process.cwd(), "dist/src/cli.js");
 const cleanFixture = path.join(process.cwd(), "examples/fixtures/redux-clean");
 const messyFixture = path.join(process.cwd(), "examples/fixtures/redux-messy");
+const regexFixture = path.join(process.cwd(), "examples/fixtures/regex-literals");
 
 function runCli(args: string[]) {
   return spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
@@ -52,4 +53,13 @@ test("a valid score gate failure keeps exit status 2", () => {
   assert.equal(result.status, 2);
   assert.match(result.stdout, /Statecraft audit/);
   assert.match(result.stderr, /is below minimum 100/);
+});
+
+test("JSON scans ignore detector vocabulary inside regex literals", () => {
+  const result = runCli(["scan", regexFixture, "--format", "json"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.slices.map(({ file }: { file: string }) => file), ["src/real-code.ts"]);
+  assert.ok(!report.findings.some(({ file }: { file?: string }) => file === "src/patterns.ts"));
 });
