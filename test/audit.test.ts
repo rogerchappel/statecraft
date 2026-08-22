@@ -114,9 +114,17 @@ test("rule matching ignores comments and string literals", async () => {
 test("regex literal bodies do not create state inventory or findings", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "regex-literals") });
 
-  assert.deepEqual(report.slices.map(({ file }) => file), ["src/real-code.ts"]);
+  assert.deepEqual(report.slices.map(({ file }) => file), ["src/control.reducer.ts", "src/real-code.ts"]);
   assert.ok(!report.slices.some(({ file }) => file === "src/patterns.ts"));
   assert.ok(!report.findings.some(({ file }) => file === "src/patterns.ts"));
+  assert.ok(!report.findings.some(({ id, file }) => id === "impure-reducer-input" && file === "src/control.reducer.ts"));
+  assert.deepEqual(
+    report.findings.filter(({ id }) => id === "impure-reducer-input").map(({ title, line }) => ({ title, line })),
+    [
+      { title: "Impure input detected: Date.now()", line: 8 },
+      { title: "Impure input detected: localStorage", line: 7 }
+    ]
+  );
 });
 
 test("rule matching evaluates simple and nested template interpolations", async () => {

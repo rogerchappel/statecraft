@@ -60,6 +60,14 @@ test("JSON scans ignore detector vocabulary inside regex literals", () => {
 
   assert.equal(result.status, 0, result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.slices.map(({ file }: { file: string }) => file), ["src/real-code.ts"]);
+  assert.deepEqual(report.slices.map(({ file }: { file: string }) => file), ["src/control.reducer.ts", "src/real-code.ts"]);
   assert.ok(!report.findings.some(({ file }: { file?: string }) => file === "src/patterns.ts"));
+  assert.ok(!report.findings.some(({ id, file }: { id: string; file?: string }) => id === "impure-reducer-input" && file === "src/control.reducer.ts"));
+  assert.deepEqual(
+    report.findings.filter(({ id }: { id: string }) => id === "impure-reducer-input").map(({ title, line }: { title: string; line?: number }) => ({ title, line })),
+    [
+      { title: "Impure input detected: Date.now()", line: 8 },
+      { title: "Impure input detected: localStorage", line: 7 }
+    ]
+  );
 });
