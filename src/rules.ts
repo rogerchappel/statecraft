@@ -132,7 +132,21 @@ function startsRegexLiteral(maskedPrefix: string): boolean {
   const prefix = maskedPrefix.trimEnd();
   if (prefix === "") return true;
   if (/[({[=,:;!?&|+\-*%^~<>]$/.test(prefix)) return true;
+  if (endsWithControlFlowHead(prefix)) return true;
   return /\b(?:case|delete|do|else|in|instanceof|new|of|return|throw|typeof|void|yield)$/.test(prefix);
+}
+
+function endsWithControlFlowHead(prefix: string): boolean {
+  if (!prefix.endsWith(")")) return false;
+  let depth = 0;
+  for (let index = prefix.length - 1; index >= 0; index -= 1) {
+    if (prefix[index] === ")") depth += 1;
+    else if (prefix[index] === "(") {
+      depth -= 1;
+      if (depth === 0) return /\b(?:if|while|for|with)\s*$/.test(prefix.slice(0, index));
+    }
+  }
+  return false;
 }
 
 export function migrationChecklist(slices: SliceRecord[], findings: Finding[]): string[] {
