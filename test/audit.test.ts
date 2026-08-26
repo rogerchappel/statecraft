@@ -43,6 +43,20 @@ test("state recipe findings retain the source file and line", async () => {
   );
 });
 
+test("vanilla reducer mutations cover assignments, computed properties, and collections", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "mutation-detection") });
+
+  assert.deepEqual(
+    report.findings.filter(({ id }) => id === "mutation-without-immer").map(({ file, line }) => ({ file, line })),
+    [
+      { file: "src/collection.reducer.ts", line: 4 },
+      { file: "src/compound.reducer.ts", line: 4 },
+      { file: "src/computed.reducer.ts", line: 4 }
+    ]
+  );
+  assert.ok(!report.findings.some(({ file }) => file === "src/immer.slice.ts"));
+});
+
 test("test path filtering does not exclude source names containing test or spec", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "path-filtering") });
 
