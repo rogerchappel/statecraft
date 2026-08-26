@@ -29,7 +29,7 @@ statecraft --help
 ## What it checks
 
 - explicit `initialState` and discoverable reducer recipes
-- reducer predictability issues such as clocks, random values, storage, or mutation outside Immer-style wrappers
+- reducer predictability issues such as clocks, random values, storage, or common mutation outside Immer-style wrappers (property and computed assignments, update operators, and mutating array/collection methods)
 - async thunk lifecycle coverage for `pending`, `fulfilled`, and `rejected`
 - cancellation/idempotency hints for async flows
 - nearby or mirrored test coverage signals
