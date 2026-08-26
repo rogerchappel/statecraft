@@ -9,6 +9,8 @@ const impurePatterns = [
   { pattern: /sessionStorage\./, label: "sessionStorage" }
 ];
 
+const stateMutationPattern = /\bstate\s*(?:(?:\.\s*[A-Za-z_$][\w$]*)|(?:\[[^\]\r\n]+\]))(?:\s*(?:\+\+|--)|\s*(?:=|\+=|-=|\*=|\/=|%=|&&=|\|\|=|\?\?=)|(?:\s*(?:(?:\.\s*[A-Za-z_$][\w$]*)|(?:\[[^\]\r\n]+\])))?\s*\.\s*(?:push|pop|shift|unshift|splice|sort|reverse|copyWithin|fill|set|add|delete|clear)\s*\()/;
+
 export function detectSlices(files: SourceFile[]): SliceRecord[] {
   return files
     .filter((file) => !isTestSource(file.relativePath))
@@ -53,7 +55,8 @@ export function runRules(files: SourceFile[], slices: SliceRecord[]): Finding[] 
       if (!/\b(signal|abort|condition)\b/.test(code)) findings.push(finding("missing-cancellation-story", "async", "info", "Async flow lacks cancellation story", file.relativePath, "Thread AbortSignal, thunk condition, or documented idempotency through async recipes."));
     }
     if (/\bas\s+any|:\s*any\b/.test(code)) findings.push(finding("loose-state-types", "migration", "warn", "Loose any type found in state recipe", file.relativePath, "Replace any with typed slice state before migration or framework upgrades."));
-    if (/\bstate\.\w+\s*=/.test(code) && !/\b(createSlice|createReducer)\b/.test(code)) findings.push(finding("mutation-without-immer", "predictability", "error", "Reducer appears to mutate state without Immer wrapper", file.relativePath, "Return copied state from vanilla reducers or move recipe into createSlice/createReducer."));
+    const mutationLine = findLine(code, stateMutationPattern);
+    if (mutationLine && !/\b(createSlice|createReducer)\b/.test(code)) findings.push(finding("mutation-without-immer", "predictability", "error", "Reducer appears to mutate state without Immer wrapper", file.relativePath, "Return copied state from vanilla reducers or move recipe into createSlice/createReducer.", mutationLine));
   }
   return findings;
 }
