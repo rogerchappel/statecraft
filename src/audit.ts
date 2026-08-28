@@ -8,6 +8,9 @@ import type { AuditOptions, AuditReport } from "./types.js";
 export async function auditProject(options: AuditOptions): Promise<AuditReport> {
   const root = path.resolve(options.root);
   const files = await collectSourceFiles(root);
+  if (files.length === 0) {
+    throw new Error(`No JavaScript or TypeScript source files detected in ${root}`);
+  }
   const slices = detectSlices(files);
   const findings = runRules(files, slices);
   const score = scoreFindings(findings);
