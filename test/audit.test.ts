@@ -155,3 +155,14 @@ test("rule matching evaluates simple and nested template interpolations", async 
     ]
   );
 });
+
+test("auditProject rejects targets with zero detected source files", async () => {
+  const emptyTarget = path.join(fixtureRoot, "empty-directory");
+  await assert.rejects(
+    () => auditProject({ root: emptyTarget }),
+    {
+      name: "Error",
+      message: `No JavaScript or TypeScript source files detected in ${emptyTarget}`
+    }
+  );
+});
