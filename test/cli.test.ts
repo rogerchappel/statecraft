@@ -55,6 +55,25 @@ test("a valid score gate failure keeps exit status 2", () => {
   assert.match(result.stderr, /is below minimum 100/);
 });
 
+test("scanning redux-messy fixture fails when --min-score threshold is above actual score", () => {
+  // redux-messy has impure inputs and missing test which penalize its score
+  const result = runCli(["scan", messyFixture, "--min-score", "80", "--format", "json"]);
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /is below minimum 80/);
+  const parsed = JSON.parse(result.stdout);
+  assert.ok(parsed.score < 80);
+});
+
+test("scanning empty directory target exits status 1 with informative error", () => {
+  const emptyFixture = path.join(process.cwd(), "examples/fixtures/empty-directory");
+  const result = runCli(["scan", emptyFixture]);
+
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /No JavaScript or TypeScript source files detected in/);
+});
+
 test("JSON scans ignore detector vocabulary inside regex literals", () => {
   const result = runCli(["scan", regexFixture, "--format", "json"]);
 
