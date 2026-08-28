@@ -42,6 +42,18 @@ function usage(): string {
   return `Statecraft — read-only Redux-style state recipe auditor\n\nUsage:\n  statecraft scan <project> [--format markdown|json] [--min-score 0-100]\n\nExamples:\n  statecraft scan examples/fixtures/redux-clean\n  statecraft scan . --format json --min-score 75\n`;
 }
 
+function isTargetMissingError(error: unknown): boolean {
+  if (error instanceof Error) {
+    if (error.message.startsWith("No JavaScript or TypeScript source files detected in ")) {
+      return true;
+    }
+    if ("code" in error && (error as { code?: unknown }).code === "ENOENT") {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function main(): Promise<void> {
   try {
     const args = parseArgs(process.argv.slice(2));
@@ -57,7 +69,11 @@ async function main(): Promise<void> {
       process.exitCode = 2;
     }
   } catch (error) {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n\n${usage()}`);
+    if (isTargetMissingError(error)) {
+      process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    } else {
+      process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n\n${usage()}`);
+    }
     process.exitCode = 1;
   }
 }
