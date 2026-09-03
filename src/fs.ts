@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-const SOURCE_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
+const SOURCE_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx", ".mts", ".cts"]);
 const IGNORED_DIRS = new Set([".git", "node_modules", "dist", "build", "coverage", ".next"]);
 
 export interface SourceFile {
