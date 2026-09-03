@@ -7,6 +7,7 @@ const cli = path.join(process.cwd(), "dist/src/cli.js");
 const cleanFixture = path.join(process.cwd(), "examples/fixtures/redux-clean");
 const messyFixture = path.join(process.cwd(), "examples/fixtures/redux-messy");
 const regexFixture = path.join(process.cwd(), "examples/fixtures/regex-literals");
+const moduleExtensionsFixture = path.join(process.cwd(), "examples/fixtures/module-extensions");
 
 function runCli(args: string[]) {
   return spawnSync(process.execPath, [cli, ...args], { encoding: "utf8" });
@@ -89,4 +90,12 @@ test("JSON scans ignore detector vocabulary inside regex literals", () => {
       { title: "Impure input detected: localStorage", line: 7 }
     ]
   );
+});
+
+test("a directory containing only .mts and .cts sources scans successfully", () => {
+  const result = runCli(["scan", moduleExtensionsFixture, "--format", "json"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.summary.filesScanned, 2);
 });
