@@ -57,6 +57,22 @@ test("vanilla reducer mutations cover assignments, computed properties, and coll
   assert.ok(!report.findings.some(({ file }) => file === "src/immer.slice.ts"));
 });
 
+test("Node TypeScript module extensions are inventoried and report mutation locations", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "module-extensions") });
+
+  assert.deepEqual(report.slices.map(({ file }) => file), [
+    "src/cart.reducer.mts",
+    "src/profile.reducer.cts"
+  ]);
+  assert.deepEqual(
+    report.findings.filter(({ id }) => id === "mutation-without-immer").map(({ file, line }) => ({ file, line })),
+    [
+      { file: "src/cart.reducer.mts", line: 4 },
+      { file: "src/profile.reducer.cts", line: 4 }
+    ]
+  );
+});
+
 test("test path filtering does not exclude source names containing test or spec", async () => {
   const report = await auditProject({ root: path.join(fixtureRoot, "path-filtering") });
 
