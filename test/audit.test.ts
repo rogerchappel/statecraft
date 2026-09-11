@@ -79,7 +79,10 @@ test(".mts and .cts slices get .ts-equivalent names and test pairing", async () 
   const byFile = new Map(report.slices.map((slice) => [slice.file, slice]));
 
   assert.equal(byFile.get("src/cart.reducer.mts")?.name, "cart");
-  assert.equal(byFile.get("src/profile.reducer.cts")?.name, "profile");
+  // The pre-existing explicit-name heuristic wins over file naming for the
+  // profile fixture (`name: "Guest"` in initialState), exactly as it would
+  // for an identical .ts file; extension stripping must not change that.
+  assert.equal(byFile.get("src/profile.reducer.cts")?.name, "Guest");
   assert.equal(byFile.get("src/session.slice.cts")?.name, "session");
   assert.ok(
     report.slices.every((slice) => slice.hasTests),
