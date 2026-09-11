@@ -62,7 +62,8 @@ test("Node TypeScript module extensions are inventoried and report mutation loca
 
   assert.deepEqual(report.slices.map(({ file }) => file), [
     "src/cart.reducer.mts",
-    "src/profile.reducer.cts"
+    "src/profile.reducer.cts",
+    "src/session.slice.cts"
   ]);
   assert.deepEqual(
     report.findings.filter(({ id }) => id === "mutation-without-immer").map(({ file, line }) => ({ file, line })),
@@ -71,6 +72,21 @@ test("Node TypeScript module extensions are inventoried and report mutation loca
       { file: "src/profile.reducer.cts", line: 4 }
     ]
   );
+});
+
+test(".mts and .cts slices get .ts-equivalent names and test pairing", async () => {
+  const report = await auditProject({ root: path.join(fixtureRoot, "module-extensions") });
+  const byFile = new Map(report.slices.map((slice) => [slice.file, slice]));
+
+  assert.equal(byFile.get("src/cart.reducer.mts")?.name, "cart");
+  assert.equal(byFile.get("src/profile.reducer.cts")?.name, "profile");
+  assert.equal(byFile.get("src/session.slice.cts")?.name, "session");
+  assert.ok(
+    report.slices.every((slice) => slice.hasTests),
+    "paired and describe-only .mts/.cts tests must satisfy coverage"
+  );
+  assert.ok(!report.findings.some(({ id }) => id === "missing-slice-test"));
+  assert.ok(!report.checklist.some((item) => item.startsWith("Close slice coverage gaps")));
 });
 
 test("test path filtering does not exclude source names containing test or spec", async () => {

@@ -97,5 +97,5 @@ test("a directory containing only .mts and .cts sources scans successfully", () 
 
   assert.equal(result.status, 0, result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.summary.filesScanned, 2);
+  assert.equal(report.summary.filesScanned, 6);
 });
