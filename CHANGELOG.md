@@ -7,6 +7,7 @@
 - Add comprehensive test coverage across all finding severity combinations and CLI threshold gates.
 - Distribute the `@rogerchappel/statecraft` package artifact through GitHub Releases, with source-checkout installation supported and npm-registry publication reserved for a future release.
 - Ignore detector vocabulary inside JavaScript and TypeScript regular-expression literals while preserving division expressions and executable template interpolations.
+- Normalize `.mts` and `.cts` slice names and test pairing so Node16-module sources get the same stripped names, coverage results, and scores as their `.ts` equivalents.
 
 ## 0.1.0
 
