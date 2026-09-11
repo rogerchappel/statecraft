@@ -168,11 +168,11 @@ export function migrationChecklist(slices: SliceRecord[], findings: Finding[]): 
 function inferSliceName(file: SourceFile): string {
   const explicit = file.text.match(/name\s*:\s*["']([^"']+)["']/)?.[1];
   if (explicit) return explicit;
-  return path.basename(file.relativePath).replace(/\.(slice|reducer|store)?\.(t|j)sx?$/i, "").replace(/\.(t|j)sx?$/i, "");
+  return path.basename(file.relativePath).replace(/\.(slice|reducer|store)?\.(c|m)?(t|j)sx?$/i, "").replace(/\.(c|m)?(t|j)sx?$/i, "");
 }
 
 function hasMatchingTest(file: SourceFile, files: SourceFile[]): boolean {
-  const base = path.basename(file.relativePath).replace(/\.(t|j)sx?$/i, "").replace(/\.(slice|reducer|store)$/i, "");
+  const base = path.basename(file.relativePath).replace(/\.(c|m)?(t|j)sx?$/i, "").replace(/\.(slice|reducer|store)$/i, "");
   const escaped = base.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const semanticBase = `(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`;
   const testNamePattern = new RegExp(semanticBase, "i");
